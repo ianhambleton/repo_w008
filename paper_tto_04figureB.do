@@ -112,17 +112,19 @@ sort iso date
                         22281 "1 Jan 21"
                         22371 "1 Apr 21"
                         22462 "1 Jul 21" 
+                        22554 "1 Oct 21" 
+                        22646 "1 Jan 22" 
                    , 
                 labs(3) notick nogrid glc(gs16))
                 xscale(noline) 
                 xtitle("Outbreak month (2020 to 2021)", size(4) margin(l=2 r=2 t=4 b=2)) 
                 
 
-                ylab( 0(10)50   
+                ylab( 0(25)150   
                 ,
                 labs(3) nogrid glc(gs16) angle(0) format(%9.0f))
                 ytitle("Case rate per 100,000", size(4) margin(l=2 r=2 t=2 b=2)) 
-                ytick(0(5)50)
+                ///ytick(0(5)50)
 
                 legend(size(4) position(11) ring(0) bm(t=1 b=1 l=1 r=1) colf cols(1) lw(0.1)
                 region(fcolor(gs16) lw(vthin) margin(l=2 r=2 t=2 b=2) lc(gs16)) 
@@ -146,13 +148,14 @@ sort iso date
 keep if iso=="TTO"
 gen outbreak = 0
 replace outbreak = 1 if date >= d(1aug2020) & date <= d(30nov2020)
-replace outbreak = 2 if date >= d(1may2021)
+replace outbreak = 2 if date >= d(1apr2021) & date <= d(30jul2021)
+replace outbreak = 3 if date >= d(1nov2021)
 collapse (sum) case death , by(outbreak)
 egen tcase = sum(case)
 egen tdeath = sum(death)
 gen pdeath = (death / tdeath) * 100
 
-
+/*
     ** Save to PDF file
     putpdf begin, pagesize(letter) landscape font("Calibri", 10) margin(top,1cm) margin(bottom,0.5cm) margin(left,1cm) margin(right,1cm)
 

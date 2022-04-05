@@ -82,16 +82,103 @@ cap{
     python: count_df2.to_stata('count_ecdc.dta')
     }
    
+
+
+
 ** Data Source C1 - JohnsHopkins counts
 ** Longer import time - includes US county-level data - much larger dataset
+** We import this dataset for the UKOTS
 
-*Added in on 16-Feb2021 to create a dataset for 2021 and combine with 2020
+** Loading 2020 COVID surveillance data
+** This is historical
+** RAN on 12-Sep-2021
+** So commented out to speed up the daily operation
+ local URL = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/"
+ forvalues month = 1/12 {
+    forvalues day = 1/31 {
+       local month = string(`month', "%02.0f")
+       local day = string(`day', "%02.0f")
+       local year = "2020"
+       local today = "`month'-`day'-`year'"
+       local FileName = "`URL'`today'.csv"
+       clear
+       capture import delimited "`FileName'"
+       capture confirm variable ïprovincestate
+       if _rc == 0 {
+          rename ïprovincestate provincestate
+          label variable provincestate "Province/State"
+       }
+       capture rename province_state provincestate
+       capture rename country_region countryregion
+       capture rename last_update lastupdate
+       capture rename lat latitude
+       capture rename long longitude
+       generate tempdate = "`today'"
+       capture save "`today'", replace
+    }
+ }
+ clear
+ forvalues month = 1/12 {
+    forvalues day = 1/31 {
+       local month = string(`month', "%02.0f")
+       local day = string(`day', "%02.0f")
+       local year = "2020"
+       local today = "`month'-`day'-`year'"
+       capture append using "`today'"
+    }
+ }
+ save "`datapath'\jh_time_series2020", replace
+
+
+ ** Loading 2021 COVID surveillance data
+ ** We split this into blocks to minimise the daily operation
+ ** Chunk: Running 2021 from JAN (01) to DEC (12)
+ local URL = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/"
+ forvalues month = 1/12 {
+    forvalues day = 1/31 {
+       local month = string(`month', "%02.0f")
+       local day = string(`day', "%02.0f")
+       local year = "2021"
+       local today = "`month'-`day'-`year'"
+       local FileName = "`URL'`today'.csv"
+       clear
+       capture import delimited "`FileName'"
+       capture confirm variable ïprovincestate
+       if _rc == 0 {
+          rename ïprovincestate provincestate
+          label variable provincestate "Province/State"
+       }
+       capture rename province_state provincestate
+       capture rename country_region countryregion
+       capture rename last_update lastupdate
+       capture rename lat latitude
+       capture rename long longitude
+       generate tempdate = "`today'"
+       capture save "`today'", replace
+    }
+ }
+ clear
+ forvalues month = 1/12 {
+    forvalues day = 1/31 {
+       local month = string(`month', "%02.0f")
+       local day = string(`day', "%02.0f")
+       local year = "2021"
+       local today = "`month'-`day'-`year'"
+       capture append using "`today'"
+    }
+ }
+ save "`datapath'\jh_time_series2021_jan_dec", replace
+
+
+** Loading 2022 COVID surveillance data
+** Chunk: Running 2022 : JAN (01)
 local URL = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/"
-forvalues month = 1/12 {
+///local month = 1 
+forvalues month = 1/3 {
    forvalues day = 1/31 {
       local month = string(`month', "%02.0f")
       local day = string(`day', "%02.0f")
-      local year = "2020"
+      local year = "2022"
       local today = "`month'-`day'-`year'"
       local FileName = "`URL'`today'.csv"
       clear
@@ -111,61 +198,27 @@ forvalues month = 1/12 {
    }
 }
 clear
-forvalues month = 1/12 {
+///local month = 1 
+forvalues month = 1/3 {
    forvalues day = 1/31 {
       local month = string(`month', "%02.0f")
       local day = string(`day', "%02.0f")
-      local year = "2020"
+      local year = "2022"
       local today = "`month'-`day'-`year'"
       capture append using "`today'"
    }
 }
-save "`datapath'\jh_time_series2020", replace
+save "`datapath'\jh_time_series2022_jan", replace
 
-local URL = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/"
-forvalues month = 1/12 {
-   forvalues day = 1/31 {
-      local month = string(`month', "%02.0f")
-      local day = string(`day', "%02.0f")
-      local year = "2021"
-      local today = "`month'-`day'-`year'"
-      local FileName = "`URL'`today'.csv"
-      clear
-      capture import delimited "`FileName'"
-      capture confirm variable ïprovincestate
-      if _rc == 0 {
-         rename ïprovincestate provincestate
-         label variable provincestate "Province/State"
-      }
-      capture rename province_state provincestate
-      capture rename country_region countryregion
-      capture rename last_update lastupdate
-      capture rename lat latitude
-      capture rename long longitude
-      generate tempdate = "`today'"
-      capture save "`today'", replace
-   }
-}
-clear
-forvalues month = 1/12 {
-   forvalues day = 1/31 {
-      local month = string(`month', "%02.0f")
-      local day = string(`day', "%02.0f")
-      local year = "2021"
-      local today = "`month'-`day'-`year'"
-      capture append using "`today'"
-   }
-}
-
-** ----------------------------------------------------------------------------
-** 18-Jun-2020
-** Save a daily backup of the Johns Hopkins data
+** Join the JH files
+use "`datapath'\jh_time_series2020", clear
+append using "`datapath'\jh_time_series2021_jan_dec"
+append using "`datapath'\jh_time_series2022_jan"
+save "`datapath'\jh_time_series_full", replace
 local c_date = c(current_date)
 local date_string = subinstr("`c_date'", " ", "", .)
-save "`datapath'\jh_time_series2021", replace
-use "`datapath'\jh_time_series2021", clear 
-append using "`datapath'\jh_time_series2020"
 save "`datapath'\jh_time_series_`date_string'", replace
+
 
 tempfile TCA AIA BMU CYM MSR VGB
 ** 18-jun-2020

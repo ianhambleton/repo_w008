@@ -30,8 +30,9 @@
 ** HEADER -----------------------------------------------------
 
 ** RUN covidprofiles_002_jhopkins.do BEFORE this algorithm
-use "`datapath'\owid_time_series_27Aug2021", clear 
+use "`datapath'\owid_time_series_6Mar2022", clear 
 
+rename iso_code iso
 
 ** RESTRICT TO SELECTED COUNTRIES
 ** We keep 14 CARICOM countries:    --> ATG BHS BRB BLZ DMA GRD GUY HTI JAM KNA LCA VCT SUR TTO
